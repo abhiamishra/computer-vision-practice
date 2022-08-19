@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 import os
+import math
 
 import handtrackmodule as htm
 
@@ -49,9 +50,29 @@ while True:
         #middle finger = x2, y2
         x2, y2 = lmList[12][1:]
 
+
+        #Finding thumb and index finger
+        x3, y3 = lmList[4][1], lmList[4][2]
+
+        #Finding length
+        length = math.hypot(x3-x1, y3-y1)
+
         #Check which fingers are up
         fingersUp = detector.fingersUp()
         #print(fingersUp)
+
+        #Checking if font mode is on
+        if fingersUp[1] and fingersUp[4]:
+            #Finding midpoint
+            cx, cy = (x1+x3)//2, (y1+y3)//2
+
+            cv2.circle(img, (x1,y1), 10, (255,0,255), cv2.FILLED)
+            cv2.circle(img, (x3,y3), 10, (255,0,255), cv2.FILLED)
+            cv2.line(img, (x1,y1), (x3,y3), (255,0,255), 3)
+            cv2.circle(img, (cx,cy), 10, (0, 255, 0), cv2.FILLED)
+            
+            brushThickness = int(np.interp(length, [20,190], [8, 80]))
+            eraserThickness = brushThickness
 
         #If selection mode - two fingers are up
         if fingersUp[1] and fingersUp[2]:
@@ -80,7 +101,7 @@ while True:
             # we are in the header
 
         #If draw mode - index finger is up
-        if fingersUp[1] and fingersUp[2]==False:
+        if fingersUp[1] and fingersUp[2]==False and fingersUp[4]==False:
 
             cv2.circle(img, (x1,y1), 15, drawColor, cv2.FILLED)
             #print("draw")
@@ -91,8 +112,8 @@ while True:
                 cv2.line(img, (xp,yp),(x1,y1), drawColor, eraserThickness)
                 cv2.line(imgCanvas, (xp,yp),(x1,y1), drawColor, eraserThickness)
             else:
-                cv2.line(img, (xp,yp),(x1,y1), drawColor, brushThickness)
-                cv2.line(imgCanvas, (xp,yp),(x1,y1), drawColor, brushThickness)
+                cv2.line(img, (xp,yp),(x1,y1), drawColor, int(brushThickness))
+                cv2.line(imgCanvas, (xp,yp),(x1,y1), drawColor, int(brushThickness))
 
             xp, yp = x1, y1
 
